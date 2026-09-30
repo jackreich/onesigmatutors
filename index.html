@@ -149,6 +149,9 @@
   .consult .btn-sigma{padding:16px 30px;font-size:16.5px}
   .consult .sub{margin-top:20px;font-family:var(--mono);font-size:14px;color:rgba(246,247,243,.66)}
   .consult .sub a{color:var(--sigma);border-bottom:1px solid rgba(14,138,99,.5)}
+  .consult .alt{margin-top:18px;font-family:var(--mono);font-size:14px;color:rgba(246,247,243,.78);display:flex;gap:8px 14px;justify-content:center;align-items:center;flex-wrap:wrap}
+  .consult .alt a,.consult .alt button{color:var(--sigma);background:none;border:none;border-bottom:1px solid rgba(14,138,99,.5);font:inherit;cursor:pointer;padding:0}
+  .consult .alt .addr{color:#fff;font-weight:600}
   footer{border-top:1px solid var(--line);padding:46px 0;color:var(--ink-soft);font-size:14px}
   .foot-inner{display:flex;justify-content:space-between;flex-wrap:wrap;gap:20px;align-items:center}
   .foot-inner .brand{font-size:19px}
@@ -210,7 +213,7 @@
     <span class="test">GRE</span></span>
     <span class="divider" aria-hidden="true"></span>
     <span class="grp"><span class="services-lab">Tutoring in</span>
-    <span class="test">Math</span><span class="sep">·</span>
+    <span class="test">Algebra II – Calc III</span><span class="sep">·</span>
     <span class="test">Physics</span></span>
   </div>
 </div>
@@ -309,6 +312,11 @@
       <h2>Book a <em>free</em> intro call.</h2>
       <p>No commitment, no pressure. A quick call for students, parents, or both to talk through goals and see if it's a fit.</p>
       <a class="btn btn-sigma" id="bookBtn" href="#contact">Book an intro call</a>
+      <div class="alt">
+        <span>Or email <span class="addr" id="emailAddr">jcreich [at] mit.edu</span></span>
+        <button type="button" id="copyEmail">Copy address</button>
+        <a id="gmailLink" href="#contact" target="_blank" rel="noopener">Open in Gmail</a>
+      </div>
       <div class="sub">From there, a free consultation and a study plan built around the student.</div>
     </div>
   </div>
@@ -316,7 +324,7 @@
 <footer>
   <div class="wrap foot-inner">
     <a href="#" class="brand"><span class="mark">σ</span>One Sigma Tutors</a>
-    <div>ACT · SAT · GMAT · GRE · Math · Physics · Online one-on-one tutoring</div>
+    <div>ACT · SAT · GMAT · GRE · Algebra II – Calc III · Physics · Online one-on-one tutoring</div>
     <div>© <span id="yr"></span> One Sigma Tutors. All rights reserved.</div>
   </div>
 </footer>
@@ -366,6 +374,14 @@
     var subj=encodeURIComponent('Intro call request - One Sigma Tutors');
     var body=encodeURIComponent('Hi Jack,\n\nI\'d like to book a free intro call.\n\nStudent name:\nSubject or test (e.g. SAT, Calculus, Physics):\nGoals:\nA few times that work for me:\n\nThanks!');
     b.href='mai'+'lto:'+u+'?subject='+subj+'&body='+body;
+    var a=document.getElementById('emailAddr');if(a)a.textContent=u;
+    var g=document.getElementById('gmailLink');if(g)g.href='https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(u)+'&su='+subj+'&body='+body;
+    var c=document.getElementById('copyEmail');
+    if(c)c.addEventListener('click',function(){
+      var done=function(){c.textContent='Copied!';setTimeout(function(){c.textContent='Copy address';},2000);};
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(done,function(){prompt('Copy this address:',u);});}
+      else{prompt('Copy this address:',u);}
+    });
   })();
 </script>
 </body>
