@@ -152,9 +152,20 @@
   .consult .btn-sigma{padding:16px 30px;font-size:16.5px}
   .consult .sub{margin-top:20px;font-family:var(--mono);font-size:14px;color:rgba(246,247,243,.66)}
   .consult .sub a{color:var(--sigma);border-bottom:1px solid rgba(14,138,99,.5)}
-  .consult .alt{margin-top:18px;font-family:var(--mono);font-size:14px;color:rgba(246,247,243,.78);display:flex;gap:8px 14px;justify-content:center;align-items:center;flex-wrap:wrap}
-  .consult .alt a,.consult .alt button{color:var(--sigma);background:none;border:none;border-bottom:1px solid rgba(14,138,99,.5);font:inherit;cursor:pointer;padding:0}
-  .consult .alt .addr{color:#fff;font-weight:600}
+  .book-form{max-width:560px;margin:0 auto;text-align:left;display:grid;gap:14px}
+  .book-form .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .book-form label{display:grid;gap:6px;font-family:var(--mono);font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:rgba(246,247,243,.72)}
+  .book-form input,.book-form select,.book-form textarea{font:inherit;font-family:var(--sans);font-size:16px;text-transform:none;letter-spacing:0;color:#fff;background:rgba(255,255,255,.06);border:1px solid rgba(246,247,243,.22);border-radius:10px;padding:12px 14px;width:100%}
+  .book-form select option{color:var(--ink)}
+  .book-form textarea{resize:vertical;min-height:110px}
+  .book-form input:focus,.book-form select:focus,.book-form textarea:focus{outline:2px solid var(--sigma);outline-offset:1px;border-color:transparent}
+  .book-form .btn{justify-self:center;margin-top:6px}
+  .book-form .btn[disabled]{opacity:.6;cursor:wait;transform:none}
+  .book-form .hp{display:none}
+  .form-status{text-align:center;font-family:var(--mono);font-size:14px;min-height:1.4em}
+  .form-status.ok{color:var(--sigma)}
+  .form-status.err{color:#ff9b8a}
+  @media(max-width:560px){.book-form .row{grid-template-columns:1fr}.consult{padding:44px 22px}}
   footer{border-top:1px solid var(--line);padding:46px 0;color:var(--ink-soft);font-size:14px}
   .foot-inner{display:flex;justify-content:space-between;flex-wrap:wrap;gap:20px;align-items:center}
   .foot-inner .brand{font-size:19px}
@@ -314,12 +325,25 @@
       <div class="eyebrow">Let's begin</div>
       <h2>Book a <em>free</em> intro call.</h2>
       <p>No commitment, no pressure. A quick call for students, parents, or both to talk through goals and see if it's a fit.</p>
-      <a class="btn btn-sigma" id="bookBtn" href="#contact">Book an intro call</a>
-      <div class="alt">
-        <span>Or email <span class="addr" id="emailAddr">jcreich [at] mit.edu</span></span>
-        <button type="button" id="copyEmail">Copy address</button>
-        <a id="gmailLink" href="#contact" target="_blank" rel="noopener">Open in Gmail</a>
-      </div>
+      <form class="book-form" id="bookForm" novalidate>
+        <input type="hidden" name="access_key" value="cef1aee7-00d2-4ae1-a443-e8aeae891166">
+        <input type="hidden" name="subject" value="New intro call request - One Sigma Tutors">
+        <input type="hidden" name="from_name" value="One Sigma Tutors website">
+        <input type="checkbox" name="botcheck" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="row">
+          <label>Your name<input type="text" name="name" required autocomplete="name"></label>
+          <label>Your email<input type="email" name="email" required autocomplete="email"></label>
+        </div>
+        <label>What would you like help with?
+          <select name="interest">
+            <option>SAT</option><option>ACT</option><option>GMAT</option><option>GRE</option>
+            <option>Math (Algebra I – Calc III, Linear Algebra, Diff Eq)</option><option>Physics</option><option>Not sure yet</option>
+          </select>
+        </label>
+        <label>Message<textarea name="message" rows="4" required placeholder="Goals, timeline, and a few times that work for a quick call."></textarea></label>
+        <button type="submit" class="btn btn-sigma" id="bookBtn">Book an intro call</button>
+        <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
+      </form>
       <div class="sub">From there, a free consultation and a study plan built around the student.</div>
     </div>
   </div>
@@ -372,18 +396,24 @@
   }
   document.getElementById('yr').textContent=new Date().getFullYear();
   (function(){
-    var b=document.getElementById('bookBtn');if(!b)return;
-    var u=['jcreich','mit.edu'].join('@');
-    var subj=encodeURIComponent('Intro call request - One Sigma Tutors');
-    var body=encodeURIComponent('Hi Jack,\n\nI\'d like to book a free intro call.\n\nStudent name:\nSubject or test (e.g. SAT, Calculus, Physics):\nGoals:\nA few times that work for me:\n\nThanks!');
-    b.href='mai'+'lto:'+u+'?subject='+subj+'&body='+body;
-    var a=document.getElementById('emailAddr');if(a)a.textContent=u;
-    var g=document.getElementById('gmailLink');if(g)g.href='https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(u)+'&su='+subj+'&body='+body;
-    var c=document.getElementById('copyEmail');
-    if(c)c.addEventListener('click',function(){
-      var done=function(){c.textContent='Copied!';setTimeout(function(){c.textContent='Copy address';},2000);};
-      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(done,function(){prompt('Copy this address:',u);});}
-      else{prompt('Copy this address:',u);}
+    var f=document.getElementById('bookForm');if(!f)return;
+    var st=document.getElementById('formStatus'),btn=document.getElementById('bookBtn');
+    function show(msg,cls){st.textContent=msg;st.className='form-status '+(cls||'');}
+    f.addEventListener('submit',function(e){
+      e.preventDefault();
+      if(!f.checkValidity()){f.reportValidity();return;}
+      btn.disabled=true;btn.textContent='Sending…';show('');
+      var data=Object.fromEntries(new FormData(f));
+      data.subject='Intro call request from '+data.name+' ('+data.interest+')';
+      data.replyto=data.email;
+      fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(data)})
+        .then(function(r){return r.json();})
+        .then(function(j){
+          if(j.success){f.reset();show("Thanks! Your request was sent. I'll reply by email soon.",'ok');}
+          else{show('Something went wrong sending your message. Please try again.','err');}
+        })
+        .catch(function(){show('Could not send right now. Please check your connection and try again.','err');})
+        .finally(function(){btn.disabled=false;btn.textContent='Book an intro call';});
     });
   })();
 </script>
